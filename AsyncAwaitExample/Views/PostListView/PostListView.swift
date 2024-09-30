@@ -4,19 +4,19 @@
 //
 //  Created by Ashesh Patel on 2024-09-28.
 //
-
+import SwiftUI
 
 struct PostListView: View {
-  @StateObject private var viewModel: PostViewModel
+  @State private var vm: PostListVM
   
-  init(viewModel: PostViewModel = PostViewModel()) {
-    _viewModel = StateObject(wrappedValue: viewModel)
+  init(vm: PostListVM = PostListVM(networkService: NetworkService())) {
+    _vm = State(wrappedValue: vm)
   }
   
   var body: some View {
     NavigationView {
       ZStack {
-        List(viewModel.posts) { post in
+        List(vm.posts) { post in
           VStack(alignment: .leading) {
             Text(post.title)
               .font(.headline)
@@ -27,25 +27,14 @@ struct PostListView: View {
         }
         .listStyle(PlainListStyle())
         .refreshable {
-          viewModel.fetchPosts()
+          vm.fetchPosts()
         }
         .accessibility(identifier: "postList")
-        
-        if viewModel.isLoading {
-          ProgressView()
-            .accessibility(identifier: "loadingIndicator")
-        }
       }
       .navigationTitle("Posts")
-      .alert(item: Binding<AlertItem?>(
-        get: { viewModel.errorMessage.map { AlertItem(message: $0) } },
-        set: { _ in viewModel.errorMessage = nil }
-      )) { alertItem in
-        Alert(title: Text("Error"), message: Text(alertItem.message))
-      }
     }
     .onAppear {
-      viewModel.fetchPosts()
+      vm.fetchPosts()
     }
   }
 }
